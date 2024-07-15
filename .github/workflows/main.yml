@@ -25,23 +25,23 @@ jobs:
         run: npm install -g @angular/cli
 
       - name: Build Angular app
-        run: ng build --base-href /angular-ssr/
+        run: ng build --base-href
 #//*****************************Nginx Server********************************//
 
       - name: Remove Files on Nginx Server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }} 
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: rm -rf ${{ secrets.SSH_PATH }}* 
+          host: 172.16.80.128
+          username: charlyrod
+          password: blankSpace123
+          script: rm -rf /var/www/html* 
 
       - name: Deploy to Server
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.SSH_HOST }} 
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          host: 172.16.80.128 
+          username: charlyrod
+          password: blankSpace123
           source: ${{ github.workspace }}/dist
-          target: ${{ secrets.SSH_PATH }}/ 
+          target: /var/www/html/ 
           strip_components: 2
