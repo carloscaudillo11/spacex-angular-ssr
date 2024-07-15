@@ -28,20 +28,19 @@ jobs:
         run: ng build --base-href
 #//*****************************Nginx Server********************************//
 
-      - name: Remove Files on Nginx Server
-        uses: appleboy/ssh-action@master
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
         with:
-          host: 172.16.80.128
-          username: charlyrod
-          password: blankSpace123
-          script: rm -rf /var/www/html* 
+            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to Server
-        uses: appleboy/scp-action@master
-        with:
-          host: 172.16.80.128 
-          username: charlyrod
-          password: blankSpace123
-          source: ${{ github.workspace }}/dist
-          target: /var/www/html/ 
-          strip_components: 2
+      - name: Remove Files on Nginx Server
+        run: |
+            ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -rf ${{ secrets.SSH_PATH }}*"
+
+      - name: Copy to Server
+        run: |
+          rsync -r --delete --exclude=".git" --exclude=".github" ${{ github.workspace }}/dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_PATH }}/
+
+      - name: Restart Nginx Server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "sudo systemctl restart nginx"
